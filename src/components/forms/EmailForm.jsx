@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Modal, Button, Form } from 'react-bootstrap';
 
-const EmailForm = ({ node, onClose, onSave }) => {
+const EmailForm = ({ node, show, onHide, updateNodeData }) => {
   const [formData, setFormData] = useState({
     subject: '',
     body: ''
@@ -25,64 +26,57 @@ const EmailForm = ({ node, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    updateNodeData(node.id, formData);
+    onHide();
   };
 
   return (
-    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header bg-info text-white">
-            <h5 className="modal-title">Edit Email</h5>
-            <button type="button" className="btn-close" onClick={onClose}></button>
-          </div>
+    <Modal show={show} onHide={onHide} centered backdrop="static">
+      <Modal.Header closeButton className="bg-info text-white">
+        <Modal.Title>Edit Email</Modal.Title>
+      </Modal.Header>
+      
+      <Form onSubmit={handleSubmit}>
+        <Modal.Body>
+          <Form.Group className="mb-3" controlId="emailSubject">
+            <Form.Label>Subject</Form.Label>
+            <Form.Control
+              type="text"
+              name="subject"
+              value={formData.subject}
+              onChange={handleChange}
+              placeholder="Enter email subject"
+              required
+            />
+          </Form.Group>
           
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body">
-              <div className="mb-3">
-                <label htmlFor="subject" className="form-label">Subject</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="Enter email subject"
-                  required
-                />
-              </div>
-              
-              <div className="mb-3">
-                <label htmlFor="body" className="form-label">Email Body</label>
-                <textarea
-                  className="form-control"
-                  id="body"
-                  name="body"
-                  value={formData.body}
-                  onChange={handleChange}
-                  rows="6"
-                  placeholder="Enter email content (HTML supported)"
-                  required
-                ></textarea>
-                <small className="text-muted">
-                  You can use HTML tags and inline CSS for formatting.
-                </small>
-              </div>
-            </div>
-            
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          <Form.Group className="mb-3" controlId="emailBody">
+            <Form.Label>Email Body</Form.Label>
+            <Form.Control
+              as="textarea"
+              name="body"
+              value={formData.body}
+              onChange={handleChange}
+              rows={6}
+              placeholder="Enter email content (HTML supported)"
+              required
+            />
+            <Form.Text className="text-muted">
+              You can use HTML tags and inline CSS for formatting.
+            </Form.Text>
+          </Form.Group>
+        </Modal.Body>
+        
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit">
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Form>
+    </Modal>
   );
 };
 

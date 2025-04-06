@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Navbar as BsNavbar, Container, Nav, NavDropdown } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
@@ -10,70 +11,37 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-      <div className="container">
-        <Link className="navbar-brand" to="/">Email Sequence Builder</Link>
-        <button 
-          className="navbar-toggler" 
-          type="button" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#navbarNav"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto">
+    <BsNavbar expand="lg" bg="primary" variant="dark" className="mb-4">
+      <Container>
+        <BsNavbar.Brand as={Link} to="/">Email Sequence Builder</BsNavbar.Brand>
+        <BsNavbar.Toggle aria-controls="navbar-nav" />
+        <BsNavbar.Collapse id="navbar-nav">
+          <Nav className="ms-auto">
             {isAuthenticated ? (
               <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/">Sequences</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/builder">Create New</Link>
-                </li>
-                <li className="nav-item dropdown">
-                  <a 
-                    className="nav-link dropdown-toggle" 
-                    href="#" 
-                    id="navbarDropdown" 
-                    role="button" 
-                    data-bs-toggle="dropdown" 
-                    aria-expanded="false"
+                <Nav.Link as={Link} to="/">Sequences</Nav.Link>
+                <Nav.Link as={Link} to="/builder">Create New</Nav.Link>
+                <NavDropdown title={user?.name || 'Account'} align="end" id="navbar-dropdown">
+                  <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item 
+                    className="text-danger" 
+                    onClick={handleLogout}
                   >
-                    {user?.name || 'Account'}
-                  </a>
-                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li>
-                      <Link className="dropdown-item" to="/profile">
-                        Profile
-                      </Link>
-                    </li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li>
-                      <button 
-                        className="dropdown-item text-danger" 
-                        onClick={handleLogout}
-                      >
-                        Logout
-                      </button>
-                    </li>
-                  </ul>
-                </li>
+                    Logout
+                  </NavDropdown.Item>
+                </NavDropdown>
               </>
             ) : (
               <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/login">Login</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/register">Register</Link>
-                </li>
+                <Nav.Link as={Link} to="/login">Login</Nav.Link>
+                <Nav.Link as={Link} to="/register">Register</Nav.Link>
               </>
             )}
-          </ul>
-        </div>
-      </div>
-    </nav>
+          </Nav>
+        </BsNavbar.Collapse>
+      </Container>
+    </BsNavbar>
   );
 };
 

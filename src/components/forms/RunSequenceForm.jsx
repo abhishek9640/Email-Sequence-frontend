@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 
-const RunSequenceForm = ({ onClose, onRun }) => {
+const RunSequenceForm = ({ show, onHide, onSubmit }) => {
   const [formData, setFormData] = useState({
     leadEmail: '',
     leadName: '',
-    source: ''
+    customFields: {}
   });
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -14,80 +15,101 @@ const RunSequenceForm = ({ onClose, onRun }) => {
       [name]: value
     });
   };
-  
+
+  const handleCustomFieldChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      customFields: {
+        ...formData.customFields,
+        [name]: value
+      }
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onRun(formData);
+    onSubmit(formData);
   };
-  
+
   return (
-    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header bg-success text-white">
-            <h5 className="modal-title">Run Sequence</h5>
-            <button type="button" className="btn-close" onClick={onClose}></button>
-          </div>
+    <Modal show={show} onHide={onHide} centered backdrop="static">
+      <Modal.Header closeButton className="bg-success text-white">
+        <Modal.Title>Run Sequence</Modal.Title>
+      </Modal.Header>
+      
+      <Form onSubmit={handleSubmit}>
+        <Modal.Body>
+          <p className="text-muted mb-3">
+            Enter lead information to start this email sequence.
+          </p>
           
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body">
-              <p className="alert alert-info">
-                This will start the email sequence for the specified lead.
-              </p>
-              
-              <div className="mb-3">
-                <label htmlFor="leadEmail" className="form-label">Lead Email *</label>
-                <input
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3" controlId="leadEmail">
+                <Form.Label>Email Address <span className="text-danger">*</span></Form.Label>
+                <Form.Control
                   type="email"
-                  className="form-control"
-                  id="leadEmail"
                   name="leadEmail"
                   value={formData.leadEmail}
                   onChange={handleChange}
-                  placeholder="Enter lead email address"
+                  placeholder="email@example.com"
                   required
                 />
-              </div>
-              
-              <div className="mb-3">
-                <label htmlFor="leadName" className="form-label">Lead Name</label>
-                <input
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3" controlId="leadName">
+                <Form.Label>Full Name</Form.Label>
+                <Form.Control
                   type="text"
-                  className="form-control"
-                  id="leadName"
                   name="leadName"
                   value={formData.leadName}
                   onChange={handleChange}
-                  placeholder="Enter lead name (optional)"
+                  placeholder="John Doe"
                 />
-              </div>
-              
-              <div className="mb-3">
-                <label htmlFor="source" className="form-label">Source</label>
-                <input
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <h6 className="mb-3 mt-4">Custom Fields (Optional)</h6>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3" controlId="companyName">
+                <Form.Label>Company</Form.Label>
+                <Form.Control
                   type="text"
-                  className="form-control"
-                  id="source"
-                  name="source"
-                  value={formData.source}
-                  onChange={handleChange}
-                  placeholder="Where did this lead come from? (optional)"
+                  name="company"
+                  onChange={handleCustomFieldChange}
+                  placeholder="Company Name"
                 />
-              </div>
-            </div>
-            
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-success">
-                Start Sequence
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3" controlId="phoneNumber">
+                <Form.Label>Phone</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="phone"
+                  onChange={handleCustomFieldChange}
+                  placeholder="Phone Number"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+        </Modal.Body>
+        
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
+          <Button variant="success" type="submit">
+            Start Sequence
+          </Button>
+        </Modal.Footer>
+      </Form>
+    </Modal>
   );
 };
 

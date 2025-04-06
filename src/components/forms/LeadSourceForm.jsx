@@ -1,59 +1,78 @@
 import React, { useState, useEffect } from 'react';
+import { Modal, Button, Form } from 'react-bootstrap';
 
-const LeadSourceForm = ({ node, onClose, onSave }) => {
-  const [sourceName, setSourceName] = useState('');
-  
+const LeadSourceForm = ({ node, show, onHide, updateNodeData }) => {
+  const [formData, setFormData] = useState({
+    sourceName: '',
+    description: ''
+  });
+
   useEffect(() => {
     if (node && node.data) {
-      setSourceName(node.data.sourceName || '');
+      setFormData({
+        sourceName: node.data.sourceName || '',
+        description: node.data.description || ''
+      });
     }
   }, [node]);
-  
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ sourceName });
+    updateNodeData(node.id, formData);
+    onHide();
   };
-  
+
   return (
-    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header bg-success text-white">
-            <h5 className="modal-title">Edit Lead Source</h5>
-            <button type="button" className="btn-close" onClick={onClose}></button>
-          </div>
+    <Modal show={show} onHide={onHide} centered backdrop="static">
+      <Modal.Header closeButton className="bg-success text-white">
+        <Modal.Title>Edit Lead Source</Modal.Title>
+      </Modal.Header>
+      
+      <Form onSubmit={handleSubmit}>
+        <Modal.Body>
+          <Form.Group className="mb-3" controlId="leadSourceName">
+            <Form.Label>Source Name</Form.Label>
+            <Form.Control
+              type="text"
+              name="sourceName"
+              value={formData.sourceName}
+              onChange={handleChange}
+              placeholder="e.g., Website Signup, Facebook Campaign"
+              required
+            />
+          </Form.Group>
           
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body">
-              <div className="mb-3">
-                <label htmlFor="sourceName" className="form-label">Source Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="sourceName"
-                  value={sourceName}
-                  onChange={(e) => setSourceName(e.target.value)}
-                  placeholder="Enter lead source name"
-                  required
-                />
-                <small className="text-muted">
-                  Examples: Website Signup, Demo Request, Newsletter
-                </small>
-              </div>
-            </div>
-            
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          <Form.Group className="mb-3" controlId="leadSourceDescription">
+            <Form.Label>Description (Optional)</Form.Label>
+            <Form.Control
+              as="textarea"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={3}
+              placeholder="Describe this lead source"
+            />
+          </Form.Group>
+        </Modal.Body>
+        
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit">
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Form>
+    </Modal>
   );
 };
 

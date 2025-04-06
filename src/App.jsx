@@ -1,36 +1,39 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar.jsx';
-import SequenceBuilder from './components/SequenceBuilder.jsx';
-import SequenceList from './components/SequenceList.jsx';
-import Login from './components/auth/Login.jsx';
-import Register from './components/auth/Register.jsx';
-import Profile from './components/auth/Profile.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { AuthProvider } from './context/AuthContext.jsx';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import  Login  from './components/auth/Login';
+import  Register  from './components/auth/Register';
+import  Profile  from './components/auth/Profile';
 import './App.css';
+
+import Navbar from './components/Navbar';
+import SequenceBuilder from './components/SequenceBuilder';
+import SequenceList from './components/SequenceList';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
+        <div className="App d-flex flex-column min-vh-100">
           <Navbar />
-          <div className="container">
+          <main className="flex-grow-1 py-3">
             <Routes>
-              {/* Auth Routes */}
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<SequenceList />} />
+              <Route path="/login" element={<Login />} /> 
               <Route path="/register" element={<Register />} />
-              
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<SequenceList />} />
-                <Route path="/builder" element={<SequenceBuilder />} />
-                <Route path="/builder/:id" element={<SequenceBuilder />} />
-                <Route path="/profile" element={<Profile />} />
-              </Route>
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/builder" element={<SequenceBuilder />} />
+              <Route path="/builder/:id" element={<SequenceBuilder />} />
             </Routes>
-          </div>
+          </main>
+          <footer className="bg-light py-3 mt-auto">
+            <div className="container text-center">
+              <p className="text-muted mb-0">
+                Email Marketing Sequence Builder &copy; {new Date().getFullYear()}
+              </p>
+            </div>
+          </footer>
         </div>
       </Router>
     </AuthProvider>

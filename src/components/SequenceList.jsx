@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  Container, Row, Col, Card, Table, Button, 
+  Spinner, Alert, Badge
+} from 'react-bootstrap';
+import { PlusCircle, PencilSquare, Trash } from 'react-bootstrap-icons';
 import { sequenceApi } from '../services/api';
 
 const SequenceList = () => {
@@ -49,89 +54,108 @@ const SequenceList = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+      <Container className="text-center py-5">
+        <Spinner animation="border" variant="primary" />
         <p className="mt-2">Loading sequences...</p>
-      </div>
+      </Container>
     );
   }
 
   if (error) {
     return (
-      <div className="alert alert-danger" role="alert">
-        {error}
-        <button
-          className="btn btn-outline-danger btn-sm ms-3"
-          onClick={fetchSequences}
-        >
+      <Alert variant="danger" className="d-flex justify-content-between align-items-center">
+        <span>{error}</span>
+        <Button variant="outline-danger" size="sm" onClick={fetchSequences}>
           Try Again
-        </button>
-      </div>
+        </Button>
+      </Alert>
     );
   }
 
   return (
-    <div className="sequence-list">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Email Sequences</h2>
-        <Link to="/builder" className="btn btn-primary">
-          Create New Sequence
-        </Link>
-      </div>
-
-      {sequences.length === 0 ? (
-        <div className="alert alert-info">
-          <p className="mb-0">No sequences found. Create your first email sequence to get started!</p>
-        </div>
-      ) : (
-        <div className="table-responsive">
-          <table className="table table-hover">
-            <thead className="table-light">
-              <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Created</th>
-                <th>Last Updated</th>
-                <th>Status</th>
-                <th className="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sequences.map((sequence) => (
-                <tr key={sequence._id}>
-                  <td>
-                    <Link to={`/builder/${sequence._id}`} className="fw-bold text-decoration-none">
-                      {sequence.name}
-                    </Link>
-                  </td>
-                  <td>{sequence.description || '-'}</td>
-                  <td>{formatDate(sequence.createdAt)}</td>
-                  <td>{formatDate(sequence.updatedAt)}</td>
-                  <td>
-                    <span className={`badge bg-${sequence.isActive ? 'success' : 'secondary'}`}>
-                      {sequence.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="text-end">
-                    <Link to={`/builder/${sequence._id}`} className="btn btn-sm btn-outline-primary me-2">
-                      Edit
-                    </Link>
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleDelete(sequence._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+    <Container className="sequence-list">
+      <Card className="shadow-sm">
+        <Card.Header className="bg-white">
+          <Row className="align-items-center">
+            <Col>
+              <h2 className="h4 mb-0">Email Sequences</h2>
+            </Col>
+            <Col xs="auto">
+              <Button 
+                as={Link} 
+                to="/builder" 
+                variant="primary"
+                className="d-flex align-items-center"
+              >
+                <PlusCircle className="me-2" />
+                Create New Sequence
+              </Button>
+            </Col>
+          </Row>
+        </Card.Header>
+        <Card.Body>
+          {sequences.length === 0 ? (
+            <Alert variant="info">
+              <p className="mb-0">No sequences found. Create your first email sequence to get started!</p>
+            </Alert>
+          ) : (
+            <Table hover responsive className="mb-0">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Created</th>
+                  <th>Last Updated</th>
+                  <th>Status</th>
+                  <th className="text-end">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+              </thead>
+              <tbody>
+                {sequences.map((sequence) => (
+                  <tr key={sequence._id}>
+                    <td>
+                      <Link 
+                        to={`/builder/${sequence._id}`} 
+                        className="fw-bold text-decoration-none"
+                      >
+                        {sequence.name}
+                      </Link>
+                    </td>
+                    <td>{sequence.description || '-'}</td>
+                    <td>{formatDate(sequence.createdAt)}</td>
+                    <td>{formatDate(sequence.updatedAt)}</td>
+                    <td>
+                      <Badge bg={sequence.isActive ? 'success' : 'secondary'}>
+                        {sequence.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </td>
+                    <td className="text-end">
+                      <Button 
+                        as={Link} 
+                        to={`/builder/${sequence._id}`} 
+                        variant="outline-primary" 
+                        size="sm"
+                        className="me-2 d-inline-flex align-items-center"
+                      >
+                        <PencilSquare className="me-1" /> Edit
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(sequence._id)}
+                        className="d-inline-flex align-items-center"
+                      >
+                        <Trash className="me-1" /> Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Card.Body>
+      </Card>
+    </Container>
   );
 };
 

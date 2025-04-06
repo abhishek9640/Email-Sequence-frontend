@@ -9,6 +9,11 @@ import ReactFlow, {
   addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { 
+  Container, Row, Col, Form, Button, Card, 
+  Toast, ToastContainer, Spinner 
+} from 'react-bootstrap';
+import { Save, Play } from 'react-bootstrap-icons';
 
 import { nodeTypes, createNode } from './nodes/index.jsx';
 import { sequenceApi } from '../services/api';
@@ -43,6 +48,7 @@ const SequenceBuilder = () => {
   // State for saving status
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
   // Load sequence if id is provided
   useEffect(() => {
@@ -51,6 +57,13 @@ const SequenceBuilder = () => {
     }
   }, [id]);
 
+  // Effect to show toast when save message changes
+  useEffect(() => {
+    if (saveMessage) {
+      setShowToast(true);
+    }
+  }, [saveMessage]);
+
   // Fetch sequence by id
   const fetchSequence = async (sequenceId) => {
     try {
@@ -58,7 +71,8 @@ const SequenceBuilder = () => {
       setSequence(response.data);
     } catch (error) {
       console.error('Error fetching sequence:', error);
-      alert('Failed to load the sequence. Please try again.');
+      setSaveMessage('Failed to load the sequence. Please try again.');
+      setShowToast(true);
     }
   };
 
@@ -95,11 +109,6 @@ const SequenceBuilder = () => {
       setSaveMessage('Failed to save sequence. Please try again.');
     } finally {
       setIsSaving(false);
-      
-      // Clear save message after 3 seconds
-      setTimeout(() => {
-        setSaveMessage('');
-      }, 3000);
     }
   };
 
@@ -107,16 +116,19 @@ const SequenceBuilder = () => {
   const handleRunSequence = async (leadData) => {
     try {
       if (!id) {
-        alert('Please save the sequence first before running it.');
+        setSaveMessage('Please save the sequence first before running it.');
+        setShowToast(true);
         return;
       }
       
       await sequenceApi.runSequence(id, leadData);
-      alert('Sequence started for lead: ' + leadData.leadEmail);
+      setSaveMessage('Sequence started for lead: ' + leadData.leadEmail);
+      setShowToast(true);
       setShowRunForm(false);
     } catch (error) {
       console.error('Error running sequence:', error);
-      alert('Failed to run the sequence. Please try again.');
+      setSaveMessage('Failed to run the sequence. Please try again.');
+      setShowToast(true);
     }
   };
 
@@ -198,7 +210,7 @@ const SequenceBuilder = () => {
   const onNodeClick = useCallback(
     (event, node) => {
       setCurrentNode(node);
-
+      
       // Open the appropriate form based on node type
       switch (node.type) {
         case 'emailNode':
@@ -217,181 +229,177 @@ const SequenceBuilder = () => {
     []
   );
 
-  // Update sequence name
-  const handleNameChange = (e) => {
-    setSequence({
-      ...sequence,
-      name: e.target.value
-    });
-  };
-
-  // Update sequence description
-  const handleDescriptionChange = (e) => {
-    setSequence({
-      ...sequence,
-      description: e.target.value
-    });
-  };
-
-  // Update node data
+  // Handle node data update
   const updateNodeData = useCallback(
     (nodeId, newData) => {
       setSequence((prevState) => ({
         ...prevState,
-        nodes: prevState.nodes.map((node) => {
-          if (node.id === nodeId) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                ...newData
-              }
-            };
-          }
-          return node;
-        })
+        nodes: prevState.nodes.map((node) => 
+          node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
+        ),
       }));
     },
     []
   );
 
+  // Handle sequence name change
+  const handleNameChange = (e) => {
+    setSequence((prevState) => ({
+      ...prevState,
+      name: e.target.value,
+    }));
+  };
+
+  // Handle sequence description change
+  const handleDescriptionChange = (e) => {
+    setSequence((prevState) => ({
+      ...prevState,
+      description: e.target.value,
+    }));
+  };
+
   return (
-    <div className="sequence-builder">
-      <div className="mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h2>{id ? 'Edit Sequence' : 'Create New Sequence'}</h2>
-          <div>
-            <button 
-              className="btn btn-primary me-2" 
-              onClick={saveSequence}
-              disabled={isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Save Sequence'}
-            </button>
-            {id && (
-              <button 
-                className="btn btn-success" 
-                onClick={() => setShowRunForm(true)}
-              >
-                Run Sequence
-              </button>
-            )}
-          </div>
-        </div>
-        
-        {saveMessage && (
-          <div className={`alert ${saveMessage.includes('Failed') ? 'alert-danger' : 'alert-success'}`}>
-            {saveMessage}
-          </div>
-        )}
-        
-        <div className="row mb-3">
-          <div className="col-md-6">
-            <div className="form-group">
-              <label htmlFor="sequenceName">Name</label>
-              <input
-                type="text"
-                id="sequenceName"
-                className="form-control"
-                value={sequence.name}
-                onChange={handleNameChange}
-                placeholder="Enter sequence name"
-              />
-            </div>
-          </div>
-          <div className="col-md-6">
-            <div className="form-group">
-              <label htmlFor="sequenceDescription">Description</label>
-              <input
-                type="text"
-                id="sequenceDescription"
-                className="form-control"
-                value={sequence.description || ''}
-                onChange={handleDescriptionChange}
-                placeholder="Enter sequence description"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="row">
-        <div className="col-md-3">
+    <Container fluid className="sequence-builder px-lg-4">
+      <Row>
+        <Col md={3} lg={3} xl={2} className="mb-3 mb-md-0">
           <NodePanel />
-        </div>
+        </Col>
         
-        <div className="col-md-9">
-          <div 
-            className="react-flow-wrapper" 
-            style={{ height: '70vh', border: '1px solid #ddd' }}
-            ref={reactFlowWrapper}
-          >
-            <ReactFlowProvider>
-              <ReactFlow
-                nodes={sequence.nodes}
-                edges={sequence.edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onInit={setReactFlowInstance}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                onNodeClick={onNodeClick}
-                nodeTypes={nodeTypes}
-                fitView
-              >
-                <Controls />
-                <Background variant="dots" gap={12} size={1} />
-              </ReactFlow>
-            </ReactFlowProvider>
-          </div>
-        </div>
-      </div>
+        <Col md={9} lg={9} xl={10}>
+          <Card className="shadow-sm mb-3">
+            <Card.Body>
+              <Row className="align-items-center">
+                <Col md={7}>
+                  <Form.Group className="mb-3 mb-md-0">
+                    <Form.Control
+                      type="text"
+                      value={sequence.name}
+                      onChange={handleNameChange}
+                      placeholder="Sequence Name"
+                      className="fw-bold form-control-lg"
+                    />
+                    <Form.Control
+                      as="textarea"
+                      value={sequence.description}
+                      onChange={handleDescriptionChange}
+                      placeholder="Description (optional)"
+                      className="mt-2"
+                      rows={2}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={5} className="text-md-end">
+                  <Button
+                    variant="primary"
+                    onClick={saveSequence}
+                    disabled={isSaving}
+                    className="me-2 d-inline-flex align-items-center"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                          className="me-2"
+                        />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="me-2" />
+                        Save Sequence
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="success"
+                    onClick={() => setShowRunForm(true)}
+                    className="d-inline-flex align-items-center"
+                  >
+                    <Play className="me-2" />
+                    Run Sequence
+                  </Button>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+          
+          <Card className="shadow-sm" style={{ height: 'calc(100vh - 220px)', minHeight: '500px' }}>
+            <Card.Body className="p-0">
+              <div className="reactflow-wrapper" ref={reactFlowWrapper} style={{ height: '100%' }}>
+                <ReactFlowProvider>
+                  <ReactFlow
+                    nodes={sequence.nodes}
+                    edges={sequence.edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onConnect={onConnect}
+                    onInit={setReactFlowInstance}
+                    onDrop={onDrop}
+                    onDragOver={onDragOver}
+                    onNodeClick={onNodeClick}
+                    nodeTypes={nodeTypes}
+                    fitView
+                  >
+                    <Controls />
+                    <Background color="#f8f9fa" gap={16} />
+                  </ReactFlow>
+                </ReactFlowProvider>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
       
-      {/* Email Form Modal */}
+      {/* Toast notifications */}
+      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 1060 }}>
+        <Toast onClose={() => setShowToast(false)} show={showToast} delay={3000} autohide>
+          <Toast.Header>
+            <strong className="me-auto">Notification</strong>
+          </Toast.Header>
+          <Toast.Body>{saveMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
+      
+      {/* Form Modals */}
       {showEmailForm && currentNode && (
         <EmailForm
+          show={showEmailForm}
+          onHide={() => setShowEmailForm(false)}
           node={currentNode}
-          onClose={() => setShowEmailForm(false)}
-          onSave={(data) => {
-            updateNodeData(currentNode.id, data);
-            setShowEmailForm(false);
-          }}
+          updateNodeData={updateNodeData}
         />
       )}
       
-      {/* Delay Form Modal */}
       {showDelayForm && currentNode && (
         <DelayForm
+          show={showDelayForm}
+          onHide={() => setShowDelayForm(false)}
           node={currentNode}
-          onClose={() => setShowDelayForm(false)}
-          onSave={(data) => {
-            updateNodeData(currentNode.id, data);
-            setShowDelayForm(false);
-          }}
+          updateNodeData={updateNodeData}
         />
       )}
       
-      {/* Lead Source Form Modal */}
       {showLeadSourceForm && currentNode && (
         <LeadSourceForm
+          show={showLeadSourceForm}
+          onHide={() => setShowLeadSourceForm(false)}
           node={currentNode}
-          onClose={() => setShowLeadSourceForm(false)}
-          onSave={(data) => {
-            updateNodeData(currentNode.id, data);
-            setShowLeadSourceForm(false);
-          }}
+          updateNodeData={updateNodeData}
         />
       )}
       
-      {/* Run Sequence Form Modal */}
       {showRunForm && (
         <RunSequenceForm
-          onClose={() => setShowRunForm(false)}
-          onRun={handleRunSequence}
+          show={showRunForm}
+          onHide={() => setShowRunForm(false)}
+          onSubmit={handleRunSequence}
         />
       )}
-    </div>
+    </Container>
   );
 };
 
